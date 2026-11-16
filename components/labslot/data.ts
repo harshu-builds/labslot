@@ -22,6 +22,35 @@ export type Booking = {
   status: BookingStatus
 }
 
+export type Student = {
+  id: string
+  name: string
+  email: string
+  department: string
+  program: string
+  joinedAt: string
+}
+
+export type AdminProfile = {
+  name: string
+  email: string
+  department: string
+}
+
+export const initialStudents: Student[] = [
+  { id: 'ST-1001', name: 'Harshita Gupta', email: 'harshita@university.edu', department: 'Biological Sciences', program: 'Molecular Biology', joinedAt: '2024-09-03' },
+  { id: 'ST-1002', name: 'Riya Sharma', email: 'riya@university.edu', department: 'Biological Sciences', program: 'Cell Biology', joinedAt: '2024-09-12' },
+  { id: 'ST-1003', name: 'Aditi Verma', email: 'aditi@university.edu', department: 'Engineering', program: 'Electrical Engineering', joinedAt: '2024-10-02' },
+  { id: 'ST-1004', name: 'Neha Gupta', email: 'neha@university.edu', department: 'Biotechnology', program: 'Biotechnology', joinedAt: '2024-10-17' },
+  { id: 'ST-1005', name: 'Kabir Mehta', email: 'kabir@university.edu', department: 'Engineering', program: 'Mechanical Engineering', joinedAt: '2024-11-08' },
+]
+
+export const initialAdminProfile: AdminProfile = {
+  name: 'Lab Administrator',
+  email: 'admin@labslot.edu',
+  department: 'Laboratory Services',
+}
+
 const dateOffset = (days: number) => {
   const date = new Date()
   date.setDate(date.getDate() + days)
