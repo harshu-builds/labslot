@@ -25,15 +25,259 @@ export function RoleSelection({ navigate }: { navigate: (path: string) => void }
   return <main className="auth-page"><button className="auth-back" onClick={() => navigate('/')}>‹ <span>Back to home</span></button><div className="auth-shell"><Brand/><div className="auth-heading"><span className="eyebrow">WELCOME TO LABSLOT</span><h1>Choose your role</h1><p>How will you be using LabSlot today?</p></div><div className="role-grid"><button className="role-card" onClick={() => navigate('/login?role=student')}><span className="role-icon"><UsersRound size={24}/></span><span className="role-title">Student</span><span className="role-copy">Access equipment, book laboratory slots, and keep your reservations organized.</span><span className="role-link">Continue as student <ArrowRight size={15}/></span></button><button className="role-card" onClick={() => navigate('/login?role=admin')}><span className="role-icon role-icon-admin"><LockKeyhole size={23}/></span><span className="role-title">Administrator</span><span className="role-copy">Manage equipment, approve requests, and monitor laboratory usage.</span><span className="role-link">Continue as administrator <ArrowRight size={15}/></span></button></div><p className="demo-disclaimer">Demo experience · Authentication is not production-secure.</p><p className="auth-foot">By continuing, you agree to your institution&apos;s laboratory access policies.</p></div></main>
 }
 
-export function RegistrationScreen({ navigate, onRegister }: { navigate: (path: string) => void; onRegister: (name: string, email: string) => void }) {
-  const [name,setName]=useState('')
-  const [email,setEmail]=useState('')
-  const [password,setPassword]=useState('')
-  const [confirmPassword,setConfirmPassword]=useState('')
-  const [error,setError]=useState('')
-  return <main className="auth-page"><button className="auth-back" onClick={()=>navigate('/login')}>‹ <span>Back to sign in</span></button><div className="auth-shell auth-shell-small"><Brand/><div className="auth-heading"><span className="eyebrow">STUDENT REGISTRATION</span><h1>Create your account.</h1><p>Join your campus laboratory workspace.</p></div><form className="login-form" onSubmit={(event)=>{event.preventDefault();if(password!==confirmPassword){setError('Passwords do not match.');return}onRegister(name,email)}}><label>Full name<input value={name} onChange={(event)=>setName(event.target.value)} autoComplete="name" required/></label><label>University email<input type="email" value={email} onChange={(event)=>setEmail(event.target.value)} autoComplete="email" required/></label><label>Password<input type="password" value={password} onChange={(event)=>setPassword(event.target.value)} autoComplete="new-password" minLength={6} required/></label><label>Confirm password<input type="password" value={confirmPassword} onChange={(event)=>setConfirmPassword(event.target.value)} autoComplete="new-password" minLength={6} required/></label>{error&&<p className="form-error" role="alert">{error}</p>}<button className="button button-primary button-full" type="submit">Create student account <ArrowRight size={16}/></button></form><p className="demo-disclaimer">Demo registration only · Account details stay in this browser.</p></div></main>
+
+export function RegistrationScreen({
+  navigate,
+  onRegister,
+}: {
+  navigate: (path: string) => void
+  onRegister: (details: {
+    name: string
+    email: string
+    password: string
+    department: string
+    rollNumber: string
+  }) => Promise<void>
+}) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [department, setDepartment] = useState('')
+  const [rollNumber, setRollNumber] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError('')
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
+
+    if (password.length < 8) {
+      setError('Password must contain at least 8 characters.')
+      return
+    }
+
+    setSubmitting(true)
+
+    try {
+      await onRegister({
+        name,
+        email,
+        password,
+        department,
+        rollNumber,
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <main className="auth-page">
+      <button className="auth-back" onClick={() => navigate('/login')}>
+        ‹ <span>Back to sign in</span>
+      </button>
+
+      <div className="auth-shell auth-shell-small">
+        <Brand />
+
+        <div className="auth-heading">
+          <span className="eyebrow">STUDENT REGISTRATION</span>
+          <h1>Create your account.</h1>
+          <p>Join your campus laboratory workspace.</p>
+        </div>
+
+        <form className="login-form" onSubmit={handleSubmit}>
+          <label>
+            Full name
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              autoComplete="name"
+              required
+            />
+          </label>
+
+          <label>
+            University email
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              required
+            />
+          </label>
+
+          <label>
+            Department
+            <input
+              value={department}
+              onChange={(event) => setDepartment(event.target.value)}
+              placeholder="e.g. Computer Science"
+              required
+            />
+          </label>
+
+          <label>
+            Roll number
+            <input
+              value={rollNumber}
+              onChange={(event) => setRollNumber(event.target.value)}
+              placeholder="Enter your university roll number"
+              required
+            />
+          </label>
+
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="new-password"
+              minLength={8}
+              required
+            />
+          </label>
+
+          <label>
+            Confirm password
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              autoComplete="new-password"
+              minLength={8}
+              required
+            />
+          </label>
+
+          {error && <p className="form-error" role="alert">{error}</p>}
+
+          <button
+            className="button button-primary button-full"
+            type="submit"
+            disabled={submitting}
+          >
+            {submitting ? 'Creating account...' : 'Create student account'}
+            {!submitting && <ArrowRight size={16} />}
+          </button>
+        </form>
+
+        <p className="demo-disclaimer">
+          Your account is secured with Firebase Authentication.
+        </p>
+      </div>
+    </main>
+  )
 }
 
-export function LoginScreen({ navigate, role, onLogin }: { navigate: (path: string) => void; role: 'student' | 'admin'; onLogin: (role: 'student' | 'admin') => void }) {
-  return <main className="auth-page"><button className="auth-back" onClick={() => navigate('/get-started')}>‹ <span>Choose a different role</span></button><div className="auth-shell auth-shell-small"><Brand/><div className="auth-heading"><span className="eyebrow">{role === 'admin' ? 'ADMINISTRATOR PORTAL' : 'STUDENT PORTAL'}</span><h1>{role === 'admin' ? 'Administrator sign in' : 'Welcome back.'}</h1><p>{role === 'admin' ? 'Use the demo account below. Any password works in this prototype.' : 'Sign in to your LabSlot account.'}</p></div><form className="login-form" onSubmit={(event)=>{event.preventDefault();onLogin(role)}}><label>Email address<input type="email" defaultValue={role==='admin'?'admin@labslot.edu':'harshita@university.edu'} required/></label><label>Password<input type="password" defaultValue="labslot-demo" required/></label><button className="button button-primary button-full" type="submit">Sign in <ArrowRight size={16}/></button></form><div className="demo-credentials"><strong>{role === 'admin' ? 'Admin demo credentials' : 'Student demo credentials'}</strong><span>{role==='admin'?'admin@labslot.edu':'harshita@university.edu'} <b>·</b> any password</span></div>{role==='student'&&<button className="text-action" onClick={()=>navigate('/register')}>New to LabSlot? Create a student account</button>}<p className="demo-disclaimer">Demo authentication only · Not for real credentials.</p></div></main>
+export function LoginScreen({
+  navigate,
+  role,
+  onLogin,
+}: {
+  navigate: (path: string) => void
+  role: 'student' | 'admin'
+  onLogin: (
+    email: string,
+    password: string,
+    role: 'student' | 'admin',
+  ) => Promise<void>
+}) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError('')
+    setSubmitting(true)
+
+    try {
+      await onLogin(email.trim(), password, role)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sign in failed.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <main className="auth-page">
+      <button className="auth-back" onClick={() => navigate('/get-started')}>
+        ‹ <span>Choose a different role</span>
+      </button>
+
+      <div className="auth-shell auth-shell-small">
+        <Brand />
+
+        <div className="auth-heading">
+          <span className="eyebrow">
+            {role === 'admin' ? 'ADMINISTRATOR PORTAL' : 'STUDENT PORTAL'}
+          </span>
+          <h1>{role === 'admin' ? 'Administrator sign in' : 'Welcome back.'}</h1>
+          <p>
+            {role === 'admin'
+              ? 'Sign in using your administrator account.'
+              : 'Sign in to your LabSlot account.'}
+          </p>
+        </div>
+
+        <form className="login-form" onSubmit={handleSubmit}>
+          <label>
+            Email address
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="username"
+              required
+            />
+          </label>
+
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </label>
+
+          {error && <p className="form-error" role="alert">{error}</p>}
+
+          <button
+            className="button button-primary button-full"
+            type="submit"
+            disabled={submitting}
+          >
+            {submitting ? 'Signing in...' : 'Sign in'}
+            {!submitting && <ArrowRight size={16} />}
+          </button>
+        </form>
+
+        {role === 'student' && (
+          <button className="text-action" onClick={() => navigate('/register')}>
+            New to LabSlot? Create a student account
+          </button>
+        )}
+
+        <p className="demo-disclaimer">
+          Secure sign in powered by Firebase Authentication.
+        </p>
+      </div>
+    </main>
+  )
 }
