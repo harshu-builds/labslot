@@ -29,12 +29,12 @@ const dateOffset = (days: number) => {
 }
 
 export const initialEquipment: Equipment[] = [
-  { id: 'eq-01', name: 'Microscope', category: 'Biology', status: 'Available', image: 'https://images.unsplash.com/photo-1579154341098-e4e158cc7f55?auto=format&fit=crop&w=900&q=85', description: 'Olympus CX23 compound microscope with 4×, 10×, 40× and 100× objectives.', location: 'Biology Lab · Lab B' },
-  { id: 'eq-02', name: 'Oscilloscope', category: 'Electronics', status: 'Available', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=900&q=85', description: 'Digital oscilloscope for signal analysis, circuit diagnostics, and waveform measurement.', location: 'Electronics Lab · Lab A' },
-  { id: 'eq-03', name: 'Centrifuge', category: 'Biotechnology', status: 'Limited', image: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&w=900&q=85', description: 'Refrigerated benchtop centrifuge with programmable speed and temperature control.', location: 'Biotechnology Lab · Lab C' },
-  { id: 'eq-04', name: 'Spectrophotometer', category: 'Chemistry', status: 'Available', image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=900&q=85', description: 'UV-visible spectrophotometer for precise absorbance and concentration measurements.', location: 'Chemistry Lab · Lab D' },
-  { id: 'eq-05', name: 'Digital Multimeter', category: 'Electronics', status: 'Available', image: 'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&fit=crop&w=900&q=85', description: 'True RMS digital multimeter with voltage, current, resistance, and continuity modes.', location: 'Electronics Lab · Lab A' },
-  { id: 'eq-06', name: '3D Printer', category: 'Rapid Prototyping', status: 'Maintenance', image: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?auto=format&fit=crop&w=900&q=85', description: 'FDM printer with a 220 × 220 mm build volume for rapid prototyping projects.', location: 'Innovation Lab · Lab E' },
+  { id: 'eq-01', name: 'Microscope', category: 'Biology', status: 'Available', image: '/equipment/microscope.png', description: 'Olympus CX23 compound microscope with 4×, 10×, 40× and 100× objectives.', location: 'Biology Lab · Lab B' },
+  { id: 'eq-02', name: 'Oscilloscope', category: 'Electronics', status: 'Available', image: '/equipment/oscilloscope.png', description: 'Digital oscilloscope for signal analysis, circuit diagnostics, and waveform measurement.', location: 'Electronics Lab · Lab A' },
+  { id: 'eq-03', name: 'Centrifuge', category: 'Biotechnology', status: 'Limited', image: '/equipment/centrifuge.png', description: 'Refrigerated benchtop centrifuge with programmable speed and temperature control.', location: 'Biotechnology Lab · Lab C' },
+  { id: 'eq-04', name: 'Spectrophotometer', category: 'Chemistry', status: 'Available', image: '/equipment/spectrophotometer.png', description: 'UV-visible spectrophotometer for precise absorbance and concentration measurements.', location: 'Chemistry Lab · Lab D' },
+  { id: 'eq-05', name: 'Digital Multimeter', category: 'Electronics', status: 'Available', image: '/equipment/multimeter.png', description: 'True RMS digital multimeter with voltage, current, resistance, and continuity modes.', location: 'Electronics Lab · Lab A' },
+  { id: 'eq-06', name: '3D Printer', category: 'Rapid Prototyping', status: 'Maintenance', image: '/equipment/3d-printer.png', description: 'FDM printer with a 220 × 220 mm build volume for rapid prototyping projects.', location: 'Innovation Lab · Lab E' },
 ]
 
 export const initialBookings: Booking[] = [

@@ -29,7 +29,10 @@ function readSavedState(): SavedState | null {
 
 export function LabSlotProvider({ children }: { children: React.ReactNode }) {
   const [savedState] = useState(readSavedState)
-  const [equipment, setEquipment] = useState(() => savedState?.equipment ?? initialEquipment)
+  const [equipment, setEquipment] = useState(() => savedState?.equipment?.map((item) => {
+    const defaultItem = initialEquipment.find((entry) => entry.id === item.id)
+    return defaultItem ? { ...item, image: defaultItem.image } : item
+  }) ?? initialEquipment)
   const [bookings, setBookings] = useState(() => savedState?.bookings ?? initialBookings)
 
   useEffect(() => {
