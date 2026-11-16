@@ -1,22 +1,26 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { initialBookings, initialEquipment, timeRangesOverlap } from './data'
-import type { Booking, Equipment } from './data'
+import { initialAdminProfile, initialBookings, initialEquipment, initialStudents, timeRangesOverlap } from './data'
+import type { AdminProfile, Booking, Equipment, Student } from './data'
 
 type StoreValue = {
   equipment: Equipment[]
   bookings: Booking[]
+  students: Student[]
+  adminProfile: AdminProfile
   addBooking: (booking: Omit<Booking, 'id' | 'status'>) => { ok: boolean; message: string }
   updateBooking: (id: string, status: Booking['status']) => void
   cancelBooking: (id: string) => void
   saveEquipment: (equipment: Equipment) => void
   removeEquipment: (id: string) => void
+  registerStudent: (student: { name: string; email: string }) => void
+  saveAdminProfile: (profile: AdminProfile) => void
 }
 
 const Store = createContext<StoreValue | null>(null)
 const STORAGE_KEY = 'labslot-demo-v1'
-type SavedState = { equipment?: Equipment[]; bookings?: Booking[] }
+type SavedState = { equipment?: Equipment[]; bookings?: Booking[]; students?: Student[]; adminProfile?: AdminProfile }
 
 function readSavedState(): SavedState | null {
   try {
@@ -34,10 +38,12 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
     return defaultItem ? { ...item, image: defaultItem.image } : item
   }) ?? initialEquipment)
   const [bookings, setBookings] = useState(() => savedState?.bookings ?? initialBookings)
+  const [students, setStudents] = useState(() => savedState?.students ?? initialStudents)
+  const [adminProfile, setAdminProfile] = useState(() => savedState?.adminProfile ?? initialAdminProfile)
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ equipment, bookings }))
-  }, [equipment, bookings])
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ equipment, bookings, students, adminProfile }))
+  }, [equipment, bookings, students, adminProfile])
 
   const addBooking = useCallback((booking: Omit<Booking, 'id' | 'status'>) => {
     const item = equipment.find((entry) => entry.id === booking.equipmentId)
@@ -54,7 +60,18 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
   const cancelBooking = useCallback((id: string) => setBookings((current) => current.map((booking) => booking.id === id && booking.status === 'Pending' ? { ...booking, status: 'Cancelled' } : booking)), [])
   const saveEquipment = useCallback((item: Equipment) => setEquipment((current) => current.some((entry) => entry.id === item.id) ? current.map((entry) => entry.id === item.id ? item : entry) : [...current, item]), [])
   const removeEquipment = useCallback((id: string) => setEquipment((current) => current.filter((item) => item.id !== id)), [])
-  const value = useMemo(() => ({ equipment, bookings, addBooking, updateBooking, cancelBooking, saveEquipment, removeEquipment }), [equipment, bookings, addBooking, updateBooking, cancelBooking, saveEquipment, removeEquipment])
+  const registerStudent = useCallback(({ name, email }: { name: string; email: string }) => {
+    setStudents((current) => current.some((student) => student.email.toLowerCase() === email.toLowerCase()) ? current : [...current, {
+      id: `ST-${Date.now()}`,
+      name: name.trim(),
+      email: email.trim(),
+      department: 'Not assigned',
+      program: 'Not assigned',
+      joinedAt: new Date().toISOString().slice(0, 10),
+    }])
+  }, [])
+  const saveAdminProfile = useCallback((profile: AdminProfile) => setAdminProfile(profile), [])
+  const value = useMemo(() => ({ equipment, bookings, students, adminProfile, addBooking, updateBooking, cancelBooking, saveEquipment, removeEquipment, registerStudent, saveAdminProfile }), [equipment, bookings, students, adminProfile, addBooking, updateBooking, cancelBooking, saveEquipment, removeEquipment, registerStudent, saveAdminProfile])
 
   return <Store.Provider value={value}>{children}</Store.Provider>
 }
