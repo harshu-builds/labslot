@@ -30,13 +30,26 @@ async function createAdmin() {
     }
 
     // Create or update admin profile
-    await db.collection("users").doc(user.uid).set({
-      uid: user.uid,
-      name,
-      email,
-      role: "admin",
-      createdAt: new Date()
-    });
+// Create admin profile without overwriting existing data
+const userRef = db.collection("users").doc(user.uid);
+const existingProfile = await userRef.get();
+
+if (!existingProfile.exists) {
+  await userRef.set({
+    uid: user.uid,
+    name: user.displayName || name,
+    email: user.email,
+    role: "admin",
+    createdAt: new Date()
+  });
+  console.log("Admin profile created.");
+} else {
+  const data = existingProfile.data();
+  if (data.role !== "admin") {
+    throw new Error("Existing account is not an admin. Refusing to change its role automatically.");
+  }
+  console.log("Existing admin profile preserved.");
+}
 
     console.log("Administrator configured successfully!");
 
