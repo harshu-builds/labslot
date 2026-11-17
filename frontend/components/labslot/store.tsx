@@ -68,10 +68,13 @@ function fromStudentRecord(record: StudentRecord): Student {
 
 export function LabSlotProvider({ children }: { children: React.ReactNode }) {
   const [savedState] = useState(readSavedState)
-  const [equipment, setEquipment] = useState<Equipment[]>(() => savedState?.equipment?.map((item) => {
-    const defaultItem = initialEquipment.find((entry) => entry.id === item.id)
-    return defaultItem ? { ...item, image: defaultItem.image } : item
-  }) ?? (isLabSlotApiEnabled ? [] : initialEquipment))
+  const [equipment, setEquipment] = useState<Equipment[]>(() => {
+    if (isLabSlotApiEnabled) return []
+    return savedState?.equipment?.map((item) => {
+      const defaultItem = initialEquipment.find((entry) => entry.id === item.id)
+      return defaultItem ? { ...item, image: defaultItem.image } : item
+    }) ?? initialEquipment
+  })
   const [bookings, setBookings] = useState(() => savedState?.bookings ?? initialBookings)
   const [students, setStudents] = useState(() => isLabSlotApiEnabled ? [] : savedState?.students ?? initialStudents)
   const [adminProfile, setAdminProfile] = useState(() => savedState?.adminProfile ?? initialAdminProfile)
@@ -132,7 +135,7 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const removeEquipment = useCallback(async (id: string) => {
-    if (isLabSlotApiEnabled && !id.startsWith('eq-')) await labslotApi.deleteEquipment(id)
+    if (isLabSlotApiEnabled) await labslotApi.deleteEquipment(id)
     setEquipment((current) => current.filter((item) => item.id !== id))
   }, [])
 
