@@ -48,5 +48,5 @@ export const labslotApi = {
     apiRequest<{ id: string }>(`/api/equipment/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   listStudents: () => apiRequest<{ students: StudentRecord[] }>('/api/students'),
   updateStudent: (id: string, record: Partial<Pick<StudentRecord, 'name' | 'department' | 'rollNumber' | 'year' | 'phone'>>) =>
-    apiRequest<{ student: StudentRecord }>(`/api/students/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify({ ...record, ...(record.rollNumber?.trim() ? { rollNumber: record.rollNumber.trim() } : { rollNumber: undefined }) }) }),
+    apiRequest<{ student: StudentRecord }>(`/api/students/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify({ ...record, ...(record.rollNumber !== undefined ? { rollNumber: record.rollNumber.trim() } : {}) }) }),
 }
