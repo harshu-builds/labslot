@@ -1,5 +1,5 @@
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   BrowserRouter,
   Navigate,
@@ -41,9 +41,17 @@ function LabSlotRouter() {
   const cleanPath = location.pathname
 
   const { user, loading, refreshProfile } = useAuth()
-  const { registerStudent: addStudentToStore } = useLabSlot()
+  const { registerStudent: addStudentToStore, refreshRemoteData } = useLabSlot()
 
   const [toast, setToast] = useState('')
+
+  useEffect(() => {
+    if (!user) return
+    refreshRemoteData(user.role === 'admin').catch((error) => {
+      console.error('LabSlot data sync failed:', error)
+      setToast(error instanceof Error ? error.message : 'Unable to sync LabSlot data.')
+    })
+  }, [user?.uid, user?.role, refreshRemoteData])
 
   const navigate = useCallback(
     (next: string) => {
