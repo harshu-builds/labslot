@@ -19,7 +19,7 @@ type StoreValue = {
   cancelBooking: (id: string) => void
   saveEquipment: (equipment: Equipment) => Promise<void>
   removeEquipment: (id: string) => Promise<void>
-  updateStudentProfile: (id: string, fields: { name: string; department: string; rollNumber?: string }) => Promise<void>
+  updateStudentProfile: (id: string, fields: { name: string; department: string; rollNumber?: string; year?: number | null; phone?: string }) => Promise<void>
   registerStudent: (student: { name: string; email: string }) => void
   saveAdminProfile: (profile: AdminProfile) => void
 }
@@ -62,7 +62,7 @@ function fromStudentRecord(record: StudentRecord): Student {
     id: record.uid, name: record.name, email: record.email,
     department: record.department || 'Not assigned',
     program: record.rollNumber ? `Roll no. ${record.rollNumber}` : 'Not assigned',
-    joinedAt: created,
+    joinedAt: created, year: record.year ?? null, phone: record.phone ?? '',
   }
 }
 
@@ -139,11 +139,11 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
     setEquipment((current) => current.filter((item) => item.id !== id))
   }, [])
 
-  const updateStudentProfile = useCallback(async (id: string, fields: { name: string; department: string; rollNumber?: string }) => {
+  const updateStudentProfile = useCallback(async (id: string, fields: { name: string; department: string; rollNumber?: string; year?: number | null; phone?: string }) => {
     if (!isLabSlotApiEnabled) {
       setStudents((current) => current.map((student) => student.id === id ? {
         ...student, name: fields.name, department: fields.department,
-        program: fields.rollNumber ? `Roll no. ${fields.rollNumber}` : student.program,
+        program: fields.rollNumber ? `Roll no. ${fields.rollNumber}` : 'Not assigned', year: fields.year ?? null, phone: fields.phone ?? '',
       } : student))
       return
     }
