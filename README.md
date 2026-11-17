@@ -55,7 +55,7 @@ The backend includes `backend/scripts/createAdmin.js`. Configure `ADMIN_EMAIL`, 
 node scripts/createAdmin.js
 ```
 
-Do not commit service-account credentials or real passwords.
+To populate the initial equipment catalogue once, run `node scripts/seedEquipment.js` from `backend/`. The seed script keeps existing records unchanged. Do not commit service-account credentials or real passwords.
 
 ## Person 2 API
 
