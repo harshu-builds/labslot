@@ -40,9 +40,9 @@ function imageForEquipment(record: EquipmentRecord) {
   return match?.image ?? record.imageUrl ?? '/equipment/lab-workbench.png'
 }
 function fromEquipmentRecord(record: EquipmentRecord): Equipment {
-  const status = record.status === 'maintenance' ? 'Maintenance' : record.status === 'limited' ? 'Limited' : record.status === 'unavailable' ? 'Maintenance' : 'Available'
+  const status = record.status === 'maintenance' ? 'Maintenance' : record.status === 'limited' ? 'Limited' : record.status === 'unavailable' ? 'Unavailable' : 'Available'
   return {
-    id: record.id, name: record.name, category: record.category, status,
+    id: record.id, name: record.name, category: record.category, status, quantity: record.quantity ?? 1,
     image: imageForEquipment(record), description: record.description ?? '',
     location: record.location ?? '',
   }
@@ -50,8 +50,8 @@ function fromEquipmentRecord(record: EquipmentRecord): Equipment {
 function toEquipmentRecord(item: Equipment): Omit<EquipmentRecord, 'id'> {
   return {
     name: item.name, category: item.category, description: item.description,
-    imageUrl: item.image, location: item.location, quantity: 1,
-    status: item.status === 'Maintenance' ? 'maintenance' : item.status === 'Limited' ? 'limited' : 'available',
+    imageUrl: item.image, location: item.location, quantity: item.quantity ?? 1,
+    status: item.status === 'Maintenance' ? 'maintenance' : item.status === 'Limited' ? 'limited' : item.status === 'Unavailable' ? 'unavailable' : 'available',
   }
 }
 function fromStudentRecord(record: StudentRecord): Student {
