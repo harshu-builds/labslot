@@ -56,6 +56,9 @@ exports.updateStudent = async (req, res) => {
           return res.status(400).json({ success: false, message: "Year must be a whole number between 1 and 8" });
         }
         updates.year = value === null ? null : Number(value);
+      } else if (field === "rollNumber" || field === "phone") {
+        if (typeof value !== "string") return res.status(400).json({ success: false, message: `${field} must be a string` });
+        updates[field] = value.trim();
       } else {
         if (typeof value !== "string" || !value.trim()) return res.status(400).json({ success: false, message: `${field} must be a non-empty string` });
         updates[field] = value.trim();
