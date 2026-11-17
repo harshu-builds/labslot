@@ -1,4 +1,4 @@
-export type EquipmentStatus = 'Available' | 'Limited' | 'Maintenance'
+export type EquipmentStatus = 'Available' | 'Limited' | 'Unavailable' | 'Maintenance'
 export type BookingStatus = 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed'
 
 export type Equipment = {
@@ -6,6 +6,7 @@ export type Equipment = {
   name: string
   category: string
   status: EquipmentStatus
+  quantity?: number
   image: string
   description: string
   location: string
