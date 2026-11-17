@@ -30,6 +30,8 @@ export type Student = {
   department: string
   program: string
   joinedAt: string
+  year?: number | null
+  phone?: string
 }
 
 export type AdminProfile = {
