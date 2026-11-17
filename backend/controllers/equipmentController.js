@@ -53,7 +53,8 @@ exports.createEquipment = async (req, res) => {
       createdBy: req.user.uid
     };
     const ref = await equipmentCollection().add(payload);
-    return res.status(201).json({ success: true, message: "Equipment created", equipment: { id: ref.id, ...payload } });
+    const created = await ref.get();
+    return res.status(201).json({ success: true, message: "Equipment created", equipment: { id: created.id, ...created.data() } });
   } catch (error) {
     console.error("Create equipment error:", error);
     return res.status(500).json({ success: false, message: "Unable to create equipment" });
