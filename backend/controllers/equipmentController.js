@@ -2,7 +2,7 @@ const { db } = require("../config/firebase");
 const { FieldValue } = require("firebase-admin/firestore");
 
 const equipmentCollection = () => db.collection("equipment");
-const allowedStatuses = ["available", "unavailable", "maintenance"];
+const allowedStatuses = ["available", "limited", "unavailable", "maintenance"];
 const cleanText = (value) => typeof value === "string" ? value.trim() : "";
 
 exports.listEquipment = async (req, res) => {
