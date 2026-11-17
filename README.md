@@ -23,7 +23,7 @@ Provide Firebase Admin credentials using either:
 - `config/serviceAccountKey.json` (local only; this path is ignored by Git), or
 - `FIREBASE_SERVICE_ACCOUNT_JSON` in the backend environment.
 
-The Vite development server uses port `5173` by default. Set `FRONTEND_URL=http://localhost:5173` in `backend/.env`, then run:
+The Vite development server uses port `3000` (configured in `vite.config.mts`). Set `FRONTEND_URL=http://localhost:3000` in `backend/.env`, then run:
 
 ```bash
 npm run dev
@@ -47,7 +47,7 @@ npm install
 npm run dev
 ```
 
-Vite prints the local frontend URL in the terminal (normally `http://localhost:5173`).
+Vite prints the local frontend URL in the terminal (normally `http://localhost:3000`).
 
 ## Administrator account
 
