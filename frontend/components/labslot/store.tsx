@@ -78,7 +78,7 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
   const [dataError, setDataError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!isLabSlotApiEnabled) window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ equipment, bookings, students, adminProfile }))
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ bookings, adminProfile, ...(isLabSlotApiEnabled ? {} : { equipment, students }) }))
   }, [equipment, bookings, students, adminProfile])
 
   const refreshRemoteData = useCallback(async (includeStudents = false) => {
