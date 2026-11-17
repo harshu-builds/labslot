@@ -119,7 +119,7 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
   const saveEquipment = useCallback(async (item: Equipment) => {
     if (isLabSlotApiEnabled) {
       const payload = toEquipmentRecord(item)
-      if (item.id.startsWith('eq-')) {
+      if (item.id.startsWith('new-')) {
         const result = await labslotApi.createEquipment(payload)
         setEquipment((current) => [...current, fromEquipmentRecord(result.equipment)])
       } else {
