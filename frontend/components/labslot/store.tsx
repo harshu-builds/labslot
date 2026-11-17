@@ -19,6 +19,7 @@ type StoreValue = {
   cancelBooking: (id: string) => void
   saveEquipment: (equipment: Equipment) => Promise<void>
   removeEquipment: (id: string) => Promise<void>
+  updateStudentProfile: (id: string, fields: { name: string; department: string; rollNumber?: string }) => Promise<void>
   registerStudent: (student: { name: string; email: string }) => void
   saveAdminProfile: (profile: AdminProfile) => void
 }
@@ -135,6 +136,18 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
     setEquipment((current) => current.filter((item) => item.id !== id))
   }, [])
 
+  const updateStudentProfile = useCallback(async (id: string, fields: { name: string; department: string; rollNumber?: string }) => {
+    if (!isLabSlotApiEnabled) {
+      setStudents((current) => current.map((student) => student.id === id ? {
+        ...student, name: fields.name, department: fields.department,
+        program: fields.rollNumber ? `Roll no. ${fields.rollNumber}` : student.program,
+      } : student))
+      return
+    }
+    const result = await labslotApi.updateStudent(id, fields)
+    setStudents((current) => current.map((student) => student.id === id ? fromStudentRecord(result.student) : student))
+  }, [])
+
   const registerStudent = useCallback(({ name, email }: { name: string; email: string }) => {
     setStudents((current) => current.some((student) => student.email.toLowerCase() === email.toLowerCase()) ? current : [...current, {
       id: `ST-${Date.now()}`, name: name.trim(), email: email.trim(),
@@ -145,8 +158,8 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(() => ({
     equipment, bookings, students, adminProfile, apiEnabled: isLabSlotApiEnabled,
     dataLoading, dataError, refreshRemoteData, addBooking, updateBooking, cancelBooking,
-    saveEquipment, removeEquipment, registerStudent, saveAdminProfile,
-  }), [equipment, bookings, students, adminProfile, dataLoading, dataError, refreshRemoteData, addBooking, updateBooking, cancelBooking, saveEquipment, removeEquipment, registerStudent, saveAdminProfile])
+    saveEquipment, removeEquipment, updateStudentProfile, registerStudent, saveAdminProfile,
+  }), [equipment, bookings, students, adminProfile, dataLoading, dataError, refreshRemoteData, addBooking, updateBooking, cancelBooking, saveEquipment, removeEquipment, updateStudentProfile, registerStudent, saveAdminProfile])
 
   return <Store.Provider value={value}>{children}</Store.Provider>
 }
