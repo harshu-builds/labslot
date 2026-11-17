@@ -97,7 +97,7 @@ exports.updateEquipment = async (req, res) => {
 exports.updateEquipmentStatus = async (req, res) => {
   try {
     const { status } = req.body || {};
-    if (!allowedStatuses.includes(status)) return res.status(400).json({ success: false, message: "Status must be available, unavailable, or maintenance" });
+    if (!allowedStatuses.includes(status)) return res.status(400).json({ success: false, message: "Status must be available, limited, unavailable, or maintenance" });
     const ref = equipmentCollection().doc(req.params.id);
     const doc = await ref.get();
     if (!doc.exists) return res.status(404).json({ success: false, message: "Equipment not found" });
