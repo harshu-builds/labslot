@@ -71,9 +71,9 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
   const [equipment, setEquipment] = useState<Equipment[]>(() => savedState?.equipment?.map((item) => {
     const defaultItem = initialEquipment.find((entry) => entry.id === item.id)
     return defaultItem ? { ...item, image: defaultItem.image } : item
-  }) ?? initialEquipment)
+  }) ?? (isLabSlotApiEnabled ? [] : initialEquipment))
   const [bookings, setBookings] = useState(() => savedState?.bookings ?? initialBookings)
-  const [students, setStudents] = useState(() => savedState?.students ?? initialStudents)
+  const [students, setStudents] = useState(() => isLabSlotApiEnabled ? [] : savedState?.students ?? initialStudents)
   const [adminProfile, setAdminProfile] = useState(() => savedState?.adminProfile ?? initialAdminProfile)
   const [dataLoading, setDataLoading] = useState(false)
   const [dataError, setDataError] = useState<string | null>(null)
