@@ -54,7 +54,7 @@ function toEquipmentRecord(item: Equipment): Omit<EquipmentRecord, 'id'> {
   }
 }
 function fromStudentRecord(record: StudentRecord): Student {
-  const created = record.createdAt && typeof record.createdAt === 'object' && ' _seconds' in (record.createdAt as object)
+  const created = record.createdAt && typeof record.createdAt === 'object' && '_seconds' in (record.createdAt as object)
     ? new Date(Number((record.createdAt as { _seconds: number })._seconds) * 1000).toISOString().slice(0, 10)
     : new Date().toISOString().slice(0, 10)
   return {
