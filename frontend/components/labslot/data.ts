@@ -16,6 +16,9 @@ export type Booking = {
   id: string
   student: string
   email: string
+  studentUid?: string
+  equipmentName?: string
+  details?: string
   equipmentId: string
   date: string
   time: string
