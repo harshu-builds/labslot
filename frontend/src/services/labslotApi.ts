@@ -53,6 +53,9 @@ export const labslotApi = {
   deleteEquipment: (id: string) =>
     apiRequest<{ id: string }>(`/api/equipment/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   listStudents: () => apiRequest<{ students: StudentRecord[] }>('/api/students'),
+  getMyStudent: () => apiRequest<{ student: StudentRecord }>('/api/students/me'),
+  updateMyStudent: (record: Partial<Pick<StudentRecord, 'name' | 'department' | 'rollNumber' | 'year' | 'phone'>>) =>
+    apiRequest<{ student: StudentRecord }>('/api/students/me', { method: 'PUT', body: JSON.stringify(record) }),
   listBookings: (role: 'admin' | 'student') => apiRequest<{ bookings: BookingRecord[] }>(role === 'admin' ? '/api/bookings' : '/api/bookings/mine'),
   createBooking: (record: { equipmentId: string; date: string; time: string; purpose: string; details?: string }) =>
     apiRequest<{ booking: BookingRecord }>('/api/bookings', { method: 'POST', body: JSON.stringify(record) }),
