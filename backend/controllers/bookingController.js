@@ -2,6 +2,20 @@ const { db } = require("../config/firebase");
 
 const bookingsRef = db.collection("bookings");
 
+function timeToMinutes(value) {
+  const match = String(value).trim().match(/^(\\d{1,2}):(\\d{2})\\s*(AM|PM)$/i);
+  if (!match) return null;
+  let hours = Number(match[1]) % 12;
+  if (match[3].toUpperCase() === "PM") hours += 12;
+  return hours * 60 + Number(match[2]);
+}
+function timesOverlap(first, second) {
+  const a = String(first).split("–").map(timeToMinutes);
+  const b = String(second).split("–").map(timeToMinutes);
+  if (a.length !== 2 || b.length !== 2 || [...a, ...b].some((value) => value === null)) return first === second;
+  return a[0] < b[1] && b[0] < a[1];
+}
+
 function serialize(doc) {
   const data = doc.data();
   return { id: doc.id, ...data, createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt ?? null };
@@ -23,8 +37,12 @@ exports.createBooking = async (req, res) => {
     if (equipment.status !== "available" || Number(equipment.quantity ?? 0) < 1) {
       return res.status(409).json({ success: false, message: "This equipment is not currently available." });
     }
-    const duplicate = await bookingsRef.where("equipmentId", "==", equipmentId).where("date", "==", date).where("time", "==", time).where("status", "in", ["Pending", "Approved"]).get();
-    if (!duplicate.empty) return res.status(409).json({ success: false, message: "This time slot has already been requested. Choose another slot." });
+    const existing = await bookingsRef.where("equipmentId", "==", equipmentId).get();
+    const conflict = existing.docs.some((doc) => {
+      const booking = doc.data();
+      return booking.date === date && ["Pending", "Approved"].includes(booking.status) && timesOverlap(booking.time, time);
+    });
+    if (conflict) return res.status(409).json({ success: false, message: "This time slot overlaps an existing request. Choose another slot." });
     const profile = profileSnap.data();
     const doc = await bookingsRef.add({
       studentUid: req.user.uid,
