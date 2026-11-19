@@ -10,8 +10,8 @@ function timeToMinutes(value) {
   return hours * 60 + Number(match[2]);
 }
 function timesOverlap(first, second) {
-  const a = String(first).split("–").map(timeToMinutes);
-  const b = String(second).split("–").map(timeToMinutes);
+  const a = String(first).split(/\s*[–-]\s*/).map(timeToMinutes);
+  const b = String(second).split(/\s*[–-]\s*/).map(timeToMinutes);
   if (a.length !== 2 || b.length !== 2 || [...a, ...b].some((value) => value === null)) return first === second;
   return a[0] < b[1] && b[0] < a[1];
 }
@@ -27,14 +27,14 @@ exports.createBooking = async (req, res) => {
     if (!equipmentId || !date || !time || !purpose?.trim()) {
       return res.status(400).json({ success: false, message: "Equipment, date, time and purpose are required." });
     }
-    const parsedDate = /^\\d{4}-\\d{2}-\\d{2}$/.test(date) ? new Date(`${date}T00:00:00.000Z`) : null;
+    const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T00:00:00.000Z`) : null;
     if (!parsedDate || Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== date) {
       return res.status(400).json({ success: false, message: "Please provide a valid booking date." });
     }
     if (purpose.trim().length > 500 || String(details || "").length > 2000) {
       return res.status(400).json({ success: false, message: "Purpose or notes are too long." });
     }
-    const requestedRange = String(time).split("–").map(timeToMinutes);
+    const requestedRange = String(time).split(/\s*[–-]\s*/).map(timeToMinutes);
     if (requestedRange.length !== 2 || requestedRange.some((value) => value === null) || requestedRange[0] >= requestedRange[1]) {
       return res.status(400).json({ success: false, message: "Please select a valid time slot." });
     }
