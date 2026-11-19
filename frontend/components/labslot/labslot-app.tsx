@@ -232,13 +232,14 @@ function LabSlotRouter() {
   } else if (screen === 'students') {
     page = <AdminStudentsPage />
   } else if (screen === 'profile') {
-    page = <ProfilePage role={routeRole} notify={notify} />
+    page = <ProfilePage role={routeRole} notify={notify} userName={user.name} userEmail={user.email} />
   } else {
     page = (
       <DashboardPage
         role={routeRole}
         navigate={navigate}
         notify={notify}
+        userName={user.name}
       />
     )
   }
