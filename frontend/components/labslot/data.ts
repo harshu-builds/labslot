@@ -16,6 +16,9 @@ export type Booking = {
   id: string
   student: string
   email: string
+  studentUid?: string
+  equipmentName?: string
+  details?: string
   equipmentId: string
   date: string
   time: string
@@ -54,12 +57,6 @@ export const initialAdminProfile: AdminProfile = {
   department: 'Laboratory Services',
 }
 
-const dateOffset = (days: number) => {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  return date.toISOString().slice(0, 10)
-}
-
 export const initialEquipment: Equipment[] = [
   { id: 'eq-01', name: 'Microscope', category: 'Biology', status: 'Available', image: '/equipment/microscope.png', description: 'Olympus CX23 compound microscope with 4×, 10×, 40× and 100× objectives.', location: 'Biology Lab · Lab B' },
   { id: 'eq-02', name: 'Oscilloscope', category: 'Electronics', status: 'Available', image: '/equipment/oscilloscope.png', description: 'Digital oscilloscope for signal analysis, circuit diagnostics, and waveform measurement.', location: 'Electronics Lab · Lab A' },
@@ -67,15 +64,6 @@ export const initialEquipment: Equipment[] = [
   { id: 'eq-04', name: 'Spectrophotometer', category: 'Chemistry', status: 'Available', image: '/equipment/spectrophotometer.png', description: 'UV-visible spectrophotometer for precise absorbance and concentration measurements.', location: 'Chemistry Lab · Lab D' },
   { id: 'eq-05', name: 'Digital Multimeter', category: 'Electronics', status: 'Available', image: '/equipment/multimeter.png', description: 'True RMS digital multimeter with voltage, current, resistance, and continuity modes.', location: 'Electronics Lab · Lab A' },
   { id: 'eq-06', name: '3D Printer', category: 'Rapid Prototyping', status: 'Maintenance', image: '/equipment/3d-printer.png', description: 'FDM printer with a 220 × 220 mm build volume for rapid prototyping projects.', location: 'Innovation Lab · Lab E' },
-]
-
-export const initialBookings: Booking[] = [
-  { id: 'LS-2048', student: 'Harshita Gupta', email: 'harshita@university.edu', equipmentId: 'eq-01', date: dateOffset(2), time: '10:00 AM – 12:00 PM', purpose: 'Cell observation', status: 'Approved' },
-  { id: 'LS-2047', student: 'Harshita Gupta', email: 'harshita@university.edu', equipmentId: 'eq-02', date: dateOffset(5), time: '02:00 PM – 04:00 PM', purpose: 'Signal analysis', status: 'Pending' },
-  { id: 'LS-2046', student: 'Riya Sharma', email: 'riya@university.edu', equipmentId: 'eq-01', date: dateOffset(2), time: '12:00 PM – 02:00 PM', purpose: 'Cell observation', status: 'Pending' },
-  { id: 'LS-2045', student: 'Aditi Verma', email: 'aditi@university.edu', equipmentId: 'eq-02', date: dateOffset(3), time: '02:00 PM – 04:00 PM', purpose: 'Circuit analysis', status: 'Pending' },
-  { id: 'LS-2044', student: 'Neha Gupta', email: 'neha@university.edu', equipmentId: 'eq-03', date: dateOffset(-3), time: '09:00 AM – 11:00 AM', purpose: 'Sample preparation', status: 'Completed' },
-  { id: 'LS-2043', student: 'Harshita Gupta', email: 'harshita@university.edu', equipmentId: 'eq-04', date: dateOffset(-10), time: '11:00 AM – 01:00 PM', purpose: 'Absorbance testing', status: 'Rejected' },
 ]
 
 export const getEquipmentName = (equipment: Equipment[], id: string) => equipment.find((item) => item.id === id)?.name ?? 'Removed equipment'

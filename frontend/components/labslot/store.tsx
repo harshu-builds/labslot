@@ -1,9 +1,9 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { initialAdminProfile, initialBookings, initialEquipment, initialStudents, timeRangesOverlap } from './data'
+import { initialAdminProfile, initialEquipment, initialStudents } from './data'
 import type { AdminProfile, Booking, Equipment, Student } from './data'
-import { isLabSlotApiEnabled, labslotApi, type EquipmentRecord, type StudentRecord } from '../../src/services/labslotApi'
+import { isLabSlotApiEnabled, labslotApi, type BookingRecord, type EquipmentRecord, type StudentRecord } from '../../src/services/labslotApi'
 
 type StoreValue = {
   equipment: Equipment[]
@@ -13,10 +13,10 @@ type StoreValue = {
   apiEnabled: boolean
   dataLoading: boolean
   dataError: string | null
-  refreshRemoteData: (includeStudents?: boolean) => Promise<void>
-  addBooking: (booking: Omit<Booking, 'id' | 'status'>) => { ok: boolean; message: string }
-  updateBooking: (id: string, status: Booking['status']) => void
-  cancelBooking: (id: string) => void
+  refreshRemoteData: (includeStudents?: boolean, role?: 'admin'|'student') => Promise<void>
+  addBooking: (booking: { equipmentId: string; date: string; time: string; purpose: string; details?: string }) => Promise<{ ok: boolean; message: string }>
+  updateBooking: (id: string, status: Booking['status']) => Promise<void>
+  cancelBooking: (id: string) => Promise<void>
   saveEquipment: (equipment: Equipment) => Promise<void>
   removeEquipment: (id: string) => Promise<void>
   updateStudentProfile: (id: string, fields: { name: string; department: string; rollNumber?: string; year?: number | null; phone?: string }) => Promise<void>
@@ -75,7 +75,7 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
       return defaultItem ? { ...item, image: defaultItem.image } : item
     }) ?? initialEquipment
   })
-  const [bookings, setBookings] = useState(() => savedState?.bookings ?? initialBookings)
+  const [bookings, setBookings] = useState<Booking[]>([])
   const [students, setStudents] = useState(() => isLabSlotApiEnabled ? [] : savedState?.students ?? initialStudents)
   const [adminProfile, setAdminProfile] = useState(() => savedState?.adminProfile ?? initialAdminProfile)
   const [dataLoading, setDataLoading] = useState(false)
@@ -85,13 +85,15 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ bookings, adminProfile, ...(isLabSlotApiEnabled ? {} : { equipment, students }) }))
   }, [equipment, bookings, students, adminProfile])
 
-  const refreshRemoteData = useCallback(async (includeStudents = false) => {
+  const refreshRemoteData = useCallback(async (includeStudents = false, role: 'admin'|'student' = 'student') => {
     if (!isLabSlotApiEnabled) return
     setDataLoading(true)
     setDataError(null)
     try {
       const equipmentResult = await labslotApi.listEquipment()
       setEquipment(equipmentResult.equipment.map(fromEquipmentRecord))
+      const bookingResult = await labslotApi.listBookings(role)
+      setBookings(bookingResult.bookings as Booking[])
       if (includeStudents) {
         const studentResult = await labslotApi.listStudents()
         setStudents(studentResult.students.map(fromStudentRecord))
@@ -105,19 +107,28 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const addBooking = useCallback((booking: Omit<Booking, 'id' | 'status'>) => {
+  const addBooking = useCallback(async (booking: { equipmentId: string; date: string; time: string; purpose: string; details?: string }) => {
     const item = equipment.find((entry) => entry.id === booking.equipmentId)
     if (!item || item.status !== 'Available') return { ok: false, message: 'This equipment is not available for booking.' }
     const today = new Date(); today.setHours(0, 0, 0, 0)
     if (new Date(`${booking.date}T00:00:00`) < today) return { ok: false, message: 'Choose a date in the future.' }
-    const conflict = bookings.some((existing) => existing.equipmentId === booking.equipmentId && existing.date === booking.date && timeRangesOverlap(existing.time, booking.time) && ['Pending', 'Approved'].includes(existing.status))
-    if (conflict) return { ok: false, message: 'That time slot was just reserved. Choose another slot.' }
-    setBookings((current) => [{ ...booking, id: `LS-${Math.floor(2000 + Math.random() * 7000)}`, status: 'Pending' }, ...current])
-    return { ok: true, message: 'Your request is on its way to the lab administrator.' }
-  }, [bookings, equipment])
+    try {
+      const result = await labslotApi.createBooking(booking)
+      setBookings((current) => [result.booking as Booking, ...current])
+      return { ok: true, message: result.message || 'Your request is on its way to the lab administrator.' }
+    } catch (error) {
+      return { ok: false, message: error instanceof Error ? error.message : 'Unable to submit booking.' }
+    }
+  }, [equipment])
 
-  const updateBooking = useCallback((id: string, status: Booking['status']) => setBookings((current) => current.map((booking) => booking.id === id ? { ...booking, status } : booking)), [])
-  const cancelBooking = useCallback((id: string) => setBookings((current) => current.map((booking) => booking.id === id && booking.status === 'Pending' ? { ...booking, status: 'Cancelled' } : booking)), [])
+  const updateBooking = useCallback(async (id: string, status: Booking['status']) => {
+    const result = await labslotApi.updateBookingStatus(id, status)
+    setBookings((current) => current.map((booking) => booking.id === id ? result.booking as Booking : booking))
+  }, [])
+  const cancelBooking = useCallback(async (id: string) => {
+    const result = await labslotApi.cancelMyBooking(id)
+    setBookings((current) => current.map((booking) => booking.id === id ? result.booking as Booking : booking))
+  }, [])
 
   const saveEquipment = useCallback(async (item: Equipment) => {
     if (isLabSlotApiEnabled) {

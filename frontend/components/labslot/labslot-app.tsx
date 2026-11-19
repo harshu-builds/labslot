@@ -47,7 +47,7 @@ function LabSlotRouter() {
 
   useEffect(() => {
     if (!user) return
-    refreshRemoteData(user.role === 'admin').catch((error) => {
+    refreshRemoteData(user.role === 'admin', user.role).catch((error) => {
       console.error('LabSlot data sync failed:', error)
       setToast(error instanceof Error ? error.message : 'Unable to sync LabSlot data.')
     })
@@ -202,6 +202,7 @@ function LabSlotRouter() {
         role={routeRole}
         navigate={navigate}
         notify={notify}
+        userName={user.name}
       />
     )
   } else if (screen === 'equipment') {
@@ -249,6 +250,7 @@ function LabSlotRouter() {
         path={path}
         navigate={navigate}
         onLogout={logout}
+        userName={user.name}
       >
         {page}
       </PortalShell>
