@@ -27,6 +27,17 @@ exports.createBooking = async (req, res) => {
     if (!equipmentId || !date || !time || !purpose?.trim()) {
       return res.status(400).json({ success: false, message: "Equipment, date, time and purpose are required." });
     }
+    const parsedDate = /^\\d{4}-\\d{2}-\\d{2}$/.test(date) ? new Date(`${date}T00:00:00.000Z`) : null;
+    if (!parsedDate || Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== date) {
+      return res.status(400).json({ success: false, message: "Please provide a valid booking date." });
+    }
+    if (purpose.trim().length > 500 || String(details || "").length > 2000) {
+      return res.status(400).json({ success: false, message: "Purpose or notes are too long." });
+    }
+    const requestedRange = String(time).split("–").map(timeToMinutes);
+    if (requestedRange.length !== 2 || requestedRange.some((value) => value === null) || requestedRange[0] >= requestedRange[1]) {
+      return res.status(400).json({ success: false, message: "Please select a valid time slot." });
+    }
     const profileSnap = await db.collection("users").doc(req.user.uid).get();
     if (!profileSnap.exists || profileSnap.data().role !== "student") {
       return res.status(403).json({ success: false, message: "Only student accounts can create bookings." });
@@ -90,6 +101,13 @@ exports.updateBookingStatus = async (req, res) => {
     const ref = bookingsRef.doc(req.params.id);
     const snap = await ref.get();
     if (!snap.exists) return res.status(404).json({ success: false, message: "Booking not found." });
+    const currentStatus = snap.data().status;
+    const allowedNext = currentStatus === "Pending"
+      ? ["Approved", "Rejected", "Cancelled"]
+      : currentStatus === "Approved" ? ["Completed", "Cancelled"] : [];
+    if (!allowedNext.includes(status)) {
+      return res.status(409).json({ success: false, message: `Cannot change a ${currentStatus} booking to ${status}.` });
+    }
     await ref.update({ status, updatedAt: new Date() });
     return res.json({ success: true, booking: serialize(await ref.get()) });
   } catch (error) {
