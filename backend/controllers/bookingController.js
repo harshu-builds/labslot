@@ -3,7 +3,7 @@ const { db } = require("../config/firebase");
 const bookingsRef = db.collection("bookings");
 
 function timeToMinutes(value) {
-  const match = String(value).trim().match(/^(\d{1,2}):(\d{2})\\s*(AM|PM)$/i);
+  const match = String(value).trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   if (!match) return null;
   let hours = Number(match[1]) % 12;
   if (match[3].toUpperCase() === "PM") hours += 12;
