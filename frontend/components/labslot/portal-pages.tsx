@@ -1,12 +1,13 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ElementType, FormEvent, ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowDownUp, ArrowRight, ArrowUpRight, CalendarDays, Check, CheckCircle2, ChevronLeft, ChevronRight, CircleHelp, ClipboardCheck, Clock3, Filter, FlaskConical, Heart, Plus, Search, Send, SlidersHorizontal, Sparkles, Users, X } from 'lucide-react'
 import { formatDate, getEquipmentName, timeRangesOverlap } from './data'
 import type { Booking, Equipment, Student } from './data'
 import { useLabSlot } from './store'
+import { labslotApi } from '../../src/services/labslotApi'
 
 function PageHeading({ eyebrow, title, description, action }: { eyebrow?:string; title:string; description?:string; action?:ReactNode }) {
   return <div className="page-heading"><div>{eyebrow&&<span className="eyebrow">{eyebrow}</span>}<h1>{title}</h1>{description&&<p>{description}</p>}</div>{action}</div>
@@ -96,17 +97,76 @@ export function ProfilePage({role,notify,userName,userEmail}:{role:'student'|'ad
  const admin=role==='admin'
  const [name,setName]=useState(admin?adminProfile.name:userName)
  const [email,setEmail]=useState(admin?adminProfile.email:userEmail)
- const [department,setDepartment]=useState(admin?adminProfile.department:'Not assigned')
+ const [department,setDepartment]=useState(admin?adminProfile.department:'')
+ const [rollNumber,setRollNumber]=useState('')
+ const [year,setYear]=useState('')
+ const [phone,setPhone]=useState('')
  const [lastSaved,setLastSaved]=useState('No changes saved yet')
+ const [saving,setSaving]=useState(false)
+ const [loading,setLoading]=useState(!admin)
+ const [error,setError]=useState('')
+ useEffect(()=>{
+   if(admin) return
+   let active=true
+   labslotApi.getMyStudent().then(({student})=>{
+     if(!active) return
+     setName(student.name || userName)
+     setEmail(student.email || userEmail)
+     setDepartment(student.department || '')
+     setRollNumber(student.rollNumber || '')
+     setYear(student.year == null ? '' : String(student.year))
+     setPhone(student.phone || '')
+   }).catch((err)=>{
+     if(active) setError(err instanceof Error ? err.message : 'Unable to load profile.')
+   }).finally(()=>{if(active)setLoading(false)})
+   return ()=>{active=false}
+ },[admin,userName,userEmail])
  const initials=name.split(' ').map((part)=>part[0]).join('').slice(0,2).toUpperCase()
- const saveProfile=(event:FormEvent<HTMLFormElement>)=>{
+ const saveProfile=async(event:FormEvent<HTMLFormElement>)=>{
    event.preventDefault()
-   if(admin){saveAdminProfile({name:name.trim(),email:email.trim(),department:department.trim()});setLastSaved('Saved just now')}
-   notify('Profile changes saved.')
+   setError('')
+   if(admin){
+     saveAdminProfile({name:name.trim(),email:email.trim(),department:department.trim()})
+     setLastSaved('Saved in this browser')
+     notify('Admin profile saved.')
+     return
+   }
+   const parsedYear=year.trim()===''?null:Number(year)
+   if(parsedYear!==null&&(!Number.isInteger(parsedYear)||parsedYear<1||parsedYear>8)){
+     setError('Year must be a whole number between 1 and 8.')
+     return
+   }
+   setSaving(true)
+   try{
+     const {student}=await labslotApi.updateMyStudent({
+       name:name.trim(),department:department.trim(),rollNumber:rollNumber.trim(),
+       year:parsedYear,phone:phone.trim()
+     })
+     setName(student.name);setDepartment(student.department||'')
+     setRollNumber(student.rollNumber||'');setYear(student.year==null?'':String(student.year))
+     setPhone(student.phone||'');setLastSaved('Saved just now')
+     notify('Student profile updated successfully.')
+   }catch(err){
+     const message=err instanceof Error?err.message:'Unable to save profile.'
+     setError(message);notify(message)
+   }finally{setSaving(false)}
  }
- return <div className="page-content"><PageHeading eyebrow="YOUR ACCOUNT" title="Profile & settings" description="Manage your LabSlot account details."/><div className="profile-grid"><section className="panel profile-card"><div className="profile-cover"/><div className="profile-avatar avatar-cyan">{initials}</div><div className="profile-identity"><h2>{name}</h2><p>{admin?'Administrator':'Student'} · {department}</p><span className="profile-badge"><CheckCircle2 size={13}/> Signed-in account</span></div><div className="profile-details"><span>ACCOUNT TYPE<strong>{admin?'Laboratory administrator':'Student'}</strong></span><span>EMAIL ADDRESS<strong>{email}</strong></span><span>DEPARTMENT<strong>{department}</strong></span></div></section><form className="panel profile-form" onSubmit={saveProfile}><div className="panel-heading"><div><h2>Personal information</h2><p>Update your profile details below.</p></div></div><label className="form-label">Full name<input value={name} onChange={(event)=>setName(event.target.value)} required/></label><label className="form-label">Email address<input type="email" value={email} onChange={(event)=>setEmail(event.target.value)} required/></label><label className="form-label">Department<input value={department} onChange={(event)=>setDepartment(event.target.value)} required/></label>{admin?<div className="profile-security-note"><CheckCircle2 size={15}/><span><strong>Demo account</strong>Profile details are saved in this browser. Authentication and password changes are not enabled.</span></div>:<label className="form-label">New password<input type="password" placeholder="Leave blank to keep your current password"/></label>}<div className="profile-save-row"><span>{lastSaved}</span><button className="button button-primary">Save changes</button></div></form></div></div>
+ return <div className="page-content"><PageHeading eyebrow="YOUR ACCOUNT" title="Profile & settings" description="Manage your LabSlot account details."/>
+ {loading&&<div className="panel"><p>Loading your profile…</p></div>}
+ <div className="profile-grid"><section className="panel profile-card"><div className="profile-cover"/><div className="profile-avatar avatar-cyan">{initials}</div><div className="profile-identity"><h2>{name}</h2><p>{admin?'Administrator':'Student'} · {department||'Department not set'}</p><span className="profile-badge"><CheckCircle2 size={13}/> Signed-in account</span></div><div className="profile-details"><span>ACCOUNT TYPE<strong>{admin?'Laboratory administrator':'Student'}</strong></span><span>EMAIL ADDRESS<strong>{email}</strong></span><span>DEPARTMENT<strong>{department||'Not assigned'}</strong></span></div></section>
+ <form className="panel profile-form" onSubmit={saveProfile}><div className="panel-heading"><div><h2>Personal information</h2><p>Update your profile details below.</p></div></div>
+ <label className="form-label">Full name<input value={name} onChange={(event)=>setName(event.target.value)} required/></label>
+ <label className="form-label">Email address<input type="email" value={email} disabled={!admin} onChange={(event)=>setEmail(event.target.value)} required/></label>
+ <label className="form-label">Department<input value={department} onChange={(event)=>setDepartment(event.target.value)} required/></label>
+ {!admin&&<>
+ <label className="form-label">Roll number<input value={rollNumber} onChange={(event)=>setRollNumber(event.target.value)} placeholder="Enter roll number"/></label>
+ <label className="form-label">Year of study<input type="number" min="1" max="8" step="1" value={year} onChange={(event)=>setYear(event.target.value)} placeholder="e.g. 2"/></label>
+ <label className="form-label">Phone number<input type="tel" value={phone} onChange={(event)=>setPhone(event.target.value)} placeholder="Enter phone number"/></label>
+ </>}
+ {admin&&<div className="profile-security-note"><CheckCircle2 size={15}/><span><strong>Admin profile</strong>These display details are saved in this browser.</span></div>}
+ {error&&<p role="alert" className="form-error">{error}</p>}
+ <div className="profile-save-row"><span>{lastSaved}</span><button className="button button-primary" disabled={saving||loading}>{saving?'Saving…':'Save changes'}</button></div></form></div></div>
 }
-
 export function AdminStudentsPage() {
  const {students,bookings,equipment,apiEnabled,dataLoading,dataError,updateStudentProfile}=useLabSlot()
  const [query,setQuery]=useState('')
