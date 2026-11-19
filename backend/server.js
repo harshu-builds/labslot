@@ -28,10 +28,12 @@ app.get("/api/health", (req, res) => {
 const authRoutes = require("./routes/authRoutes");
 const equipmentRoutes = require("./routes/equipmentRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/equipment", equipmentRoutes);
 app.use("/api/students", studentRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 const PORT = process.env.PORT || 5000;
 
