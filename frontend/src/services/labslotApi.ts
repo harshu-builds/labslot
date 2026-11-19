@@ -33,6 +33,12 @@ export type EquipmentRecord = {
   location?: string; quantity?: number; status: 'available' | 'limited' | 'unavailable' | 'maintenance'
 }
 
+export type BookingRecord = {
+  id: string; studentUid: string; student: string; email: string; equipmentId: string;
+  equipmentName?: string; date: string; time: string; purpose: string; details?: string;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled' | 'Completed'; createdAt?: string | null;
+}
+
 export type StudentRecord = {
   uid: string; name: string; email: string; department?: string; rollNumber?: string
   year?: number | null; phone?: string; createdAt?: unknown
@@ -47,6 +53,13 @@ export const labslotApi = {
   deleteEquipment: (id: string) =>
     apiRequest<{ id: string }>(`/api/equipment/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   listStudents: () => apiRequest<{ students: StudentRecord[] }>('/api/students'),
+  listBookings: (role: 'admin' | 'student') => apiRequest<{ bookings: BookingRecord[] }>(role === 'admin' ? '/api/bookings' : '/api/bookings/mine'),
+  createBooking: (record: { equipmentId: string; date: string; time: string; purpose: string; details?: string }) =>
+    apiRequest<{ booking: BookingRecord }>('/api/bookings', { method: 'POST', body: JSON.stringify(record) }),
+  updateBookingStatus: (id: string, status: BookingRecord['status']) =>
+    apiRequest<{ booking: BookingRecord }>(`/api/bookings/${encodeURIComponent(id)}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  cancelMyBooking: (id: string) =>
+    apiRequest<{ booking: BookingRecord }>(`/api/bookings/${encodeURIComponent(id)}/cancel`, { method: 'PATCH' }),
   updateStudent: (id: string, record: Partial<Pick<StudentRecord, 'name' | 'department' | 'rollNumber' | 'year' | 'phone'>>) =>
     apiRequest<{ student: StudentRecord }>(`/api/students/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify({ ...record, ...(record.rollNumber !== undefined ? { rollNumber: record.rollNumber.trim() } : {}) }) }),
 }
