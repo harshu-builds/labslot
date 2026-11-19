@@ -1,9 +1,9 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { initialAdminProfile, initialBookings, initialEquipment, initialStudents, timeRangesOverlap } from './data'
+import { initialAdminProfile, initialEquipment, initialStudents, timeRangesOverlap } from './data'
 import type { AdminProfile, Booking, Equipment, Student } from './data'
-import { isLabSlotApiEnabled, labslotApi, type EquipmentRecord, type StudentRecord } from '../../src/services/labslotApi'
+import { isLabSlotApiEnabled, labslotApi, type BookingRecord, type EquipmentRecord, type StudentRecord } from '../../src/services/labslotApi'
 
 type StoreValue = {
   equipment: Equipment[]
@@ -13,10 +13,10 @@ type StoreValue = {
   apiEnabled: boolean
   dataLoading: boolean
   dataError: string | null
-  refreshRemoteData: (includeStudents?: boolean) => Promise<void>
-  addBooking: (booking: Omit<Booking, 'id' | 'status'>) => { ok: boolean; message: string }
-  updateBooking: (id: string, status: Booking['status']) => void
-  cancelBooking: (id: string) => void
+  refreshRemoteData: (includeStudents?: boolean, role?: 'admin'|'student') => Promise<void>
+  addBooking: (booking: { equipmentId: string; date: string; time: string; purpose: string; details?: string }) => Promise<{ ok: boolean; message: string }>
+  updateBooking: (id: string, status: Booking['status']) => Promise<void>
+  cancelBooking: (id: string) => Promise<void>
   saveEquipment: (equipment: Equipment) => Promise<void>
   removeEquipment: (id: string) => Promise<void>
   updateStudentProfile: (id: string, fields: { name: string; department: string; rollNumber?: string; year?: number | null; phone?: string }) => Promise<void>
@@ -75,7 +75,7 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
       return defaultItem ? { ...item, image: defaultItem.image } : item
     }) ?? initialEquipment
   })
-  const [bookings, setBookings] = useState(() => savedState?.bookings ?? initialBookings)
+  const [bookings, setBookings] = useState<Booking[]>([])
   const [students, setStudents] = useState(() => isLabSlotApiEnabled ? [] : savedState?.students ?? initialStudents)
   const [adminProfile, setAdminProfile] = useState(() => savedState?.adminProfile ?? initialAdminProfile)
   const [dataLoading, setDataLoading] = useState(false)
@@ -85,7 +85,7 @@ export function LabSlotProvider({ children }: { children: React.ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ bookings, adminProfile, ...(isLabSlotApiEnabled ? {} : { equipment, students }) }))
   }, [equipment, bookings, students, adminProfile])
 
-  const refreshRemoteData = useCallback(async (includeStudents = false) => {
+  const refreshRemoteData = useCallback(async (includeStudents = false, role: 'admin'|'student' = 'student') => {
     if (!isLabSlotApiEnabled) return
     setDataLoading(true)
     setDataError(null)
